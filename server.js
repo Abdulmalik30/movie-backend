@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const PORT = process.env.PORT || 5000;
 const DB_URI = process.env.DB_URI;
 const verifyJWT = require('./middleware/verifyJWT');
-const corsOption = require('./config/corsOptions');
+const corsOptions = require('./config/corsOptions');
 const credentials = require('./middleware/credentials');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
@@ -19,13 +19,14 @@ mongoose
 app.use(express.json());
 
 app.use(cookieParser());
+app.use(cors(corsOptions));
 
-app.use(
-  cors({
-    origin: 'http://127.0.0.1:5173',
-    credentials: true, // allow cookies to be sent from the frontend
-  })
-);
+// app.use(
+//   cors({
+//     origin: 'http://127.0.0.1:5173',
+//     credentials: true, // allow cookies to be sent from the frontend
+//   })
+// );
 
 // app.options('/refresh', cors());
 
