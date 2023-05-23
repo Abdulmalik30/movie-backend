@@ -27,7 +27,7 @@ app.use(cookieParser());
 //   })
 // );
 
-const whitelist = ['http://localhost:5173', 'http://example2.com'];
+const whitelist = ['http://localhost:5173', 'https://trixmovies.vercel.app'];
 
 const corsOptionsDelegate = (req, callback) => {
   let corsOptions;
