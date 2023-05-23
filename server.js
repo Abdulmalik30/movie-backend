@@ -9,6 +9,7 @@ const corsOptions = require('./config/corsOptions');
 const credentials = require('./middleware/credentials');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+
 mongoose
   .connect(DB_URI)
   .then((response) => console.log('connected to db'))
@@ -16,17 +17,23 @@ mongoose
     console.log(error);
     process.exit(1);
   });
+
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(
-  cors({
-    origin: 'http://localhost:5173',
-    credentials: true,
-  })
-);
+const whitelist = ['http://localhost:5173', 'http://example2.com'];
 
-// app.options('/refresh', cors());
+const corsOptionsDelegate = (req, callback) => {
+  let corsOptions;
+  if (whitelist.indexOf(req.header('Origin')) !== -1) {
+    corsOptions = { origin: true, credentials: true };
+  } else {
+    corsOptions = { origin: false };
+  }
+  callback(null, corsOptions);
+};
+
+app.use(cors(corsOptionsDelegate));
 
 app.get('/', (req, res) => {
   res.send('hello');
@@ -34,28 +41,13 @@ app.get('/', (req, res) => {
 
 app.use('/register', require('./routes/register'));
 app.use('/login', require('./routes/login'));
-//
-// app.use((req, res, next) => {
-//   res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-//   res.setHeader(
-//     'Access-Control-Allow-Methods',
-//     'GET, POST, PUT, DELETE, OPTIONS'
-//   );
-//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-//   res.setHeader('Access-Control-Allow-Credentials', 'true');
-//   next();
-// });
-//
-// // Route to refresh access token
-// app.options('/refresh', (req, res) => {
-//   res.sendStatus(204);
-// });
 app.use('/refresh', require('./routes/refresh'));
 
-// ROUTES THAT REQUIRES AUTH
+// ROUTES THAT REQUIRE AUTH
 
 app.use(verifyJWT);
 app.use('/user', require('./routes/user'));
+
 mongoose.connection.once('open', () => {
   app.listen(PORT);
   console.log(`started listening at port ${PORT}`);
